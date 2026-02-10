@@ -1,0 +1,63 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "confirm": "Confirm",
+    "loading": "Loading"
+  },
+  "nav": {
+    "home": "Home",
+    "admin": "Admin",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "admin": {
+    "title": "Admin"
+  },
+  "settings": {
+    "title": "Settings"
+  },
+  "link": {
+    "title": "Navigation Links",
+    "add": "Add Link",
+    "edit": "Edit Link",
+    "name": "Name",
+    "url": "URL",
+    "color": "Color",
+    "shortcut": "Shortcut",
+    "logo": "Logo",
+    "visible": "Visible",
+    "group": "Group",
+    "order": "Order"
+  },
+  "group": {
+    "title": "Navigation Groups",
+    "add": "Add Group",
+    "edit": "Edit Group",
+    "name": "Name",
+    "icon": "Icon",
+    "color": "Color",
+    "order": "Order"
+  },
+  "auth": {
+    "login": "Login",
+    "loginWithGithub": "Login with GitHub",
+    "logout": "Logout",
+    "welcome": "Welcome back"
+  },
+  "skin": {
+    "title": "Skin System",
+    "select": "Select Skin",
+    "current": "Current Skin",
+    "create": "Create Skin",
+    "edit": "Edit Skin",
+    "delete": "Delete Skin",
+    "system": "System Skin",
+    "custom": "Custom Skin",
+    "preview": "Preview",
+    "button": "Button"
+  }
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub 导航</title>
+  <script>
+    // SPA 路由回退 - GitHub Pages 的 404 处理方案
+    // 问题：访问 /auth/callback 时返回 404.html，但我们需要让 Vue Router 处理这个路径
+    // 方案：保存原始路径信息到 sessionStorage，然后重定向到根路径
+
+    console.log('[404] Fallback triggered for:', window.location.pathname + window.location.search);
+
+    // 保存原始路径和查询参数到 sessionStorage
+    const originalPath = window.location.pathname;
+    const originalSearch = window.location.search;
+    const originalHash = window.location.hash;
+
+    // 保存回退信息
+    sessionStorage.setItem('spa_fallback_path', originalPath);
+    sessionStorage.setItem('spa_fallback_search', originalSearch);
+    sessionStorage.setItem('spa_fallback_hash', originalHash);
+
+    console.log('[404] Saved fallback info:', { originalPath, originalSearch, originalHash });
+
+    // 重定向到根路径，Vue Router 会从 sessionStorage 恢复路径
+    window.location.replace('/' + originalSearch + originalHash);
+  </script>
+</head>
+<body>
+  <p>正在加载应用...</p>
+</body>
+</html>

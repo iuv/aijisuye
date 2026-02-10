@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn-lock.json
+
+# Build output
+dist/
+docs/
+build/
+
+# Local environment files
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local development data
+dev-data/
+
+# Local development scripts and servers
+server.py
+a.py
+start-server.sh
+copy-static-files.sh
+
+# Apache config (not needed for GitHub Pages)
+.htaccess
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

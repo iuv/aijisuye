@@ -1,0 +1,63 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "confirm": "确认",
+    "loading": "加载中"
+  },
+  "nav": {
+    "home": "首页",
+    "admin": "管理",
+    "settings": "设置",
+    "logout": "退出登录"
+  },
+  "admin": {
+    "title": "管理后台"
+  },
+  "settings": {
+    "title": "设置"
+  },
+  "link": {
+    "title": "导航链接",
+    "add": "添加链接",
+    "edit": "编辑链接",
+    "name": "名称",
+    "url": "URL",
+    "color": "颜色",
+    "shortcut": "快捷键",
+    "logo": "Logo",
+    "visible": "显示状态",
+    "group": "分组",
+    "order": "排序"
+  },
+  "group": {
+    "title": "导航分组",
+    "add": "添加分组",
+    "edit": "编辑分组",
+    "name": "名称",
+    "icon": "图标",
+    "color": "颜色",
+    "order": "排序"
+  },
+  "auth": {
+    "login": "登录",
+    "loginWithGithub": "使用 GitHub 登录",
+    "logout": "退出登录",
+    "welcome": "欢迎回来"
+  },
+  "skin": {
+    "title": "皮肤系统",
+    "select": "选择皮肤",
+    "current": "当前皮肤",
+    "create": "创建皮肤",
+    "edit": "编辑皮肤",
+    "delete": "删除皮肤",
+    "system": "系统皮肤",
+    "custom": "自定义皮肤",
+    "preview": "预览",
+    "button": "按钮"
+  }
+}
