@@ -123,7 +123,13 @@ export const useAuthStore = defineStore('auth', {
 
       let tokenData
       try {
-        const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+        // 检查是否配置了 OAuth 代理
+        const oauthProxyUrl = import.meta.env.VITE_OAUTH_PROXY_URL
+        const tokenUrl = oauthProxyUrl || 'https://github.com/login/oauth/access_token'
+
+        console.log('[Auth] Using token URL:', tokenUrl)
+
+        const tokenResponse = await fetch(tokenUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

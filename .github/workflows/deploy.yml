@@ -43,6 +43,7 @@ jobs:
         env:
           VITE_GITHUB_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           VITE_GITHUB_REPO_NAME: ${{ secrets.REPO_NAME || 'jisuye-ext-data' }}
+          VITE_OAUTH_PROXY_URL: ${{ secrets.VITE_OAUTH_PROXY_URL || '' }}
         run: pnpm build
 
       - name: Setup Pages

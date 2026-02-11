@@ -57,20 +57,41 @@
 
 获取并保存 **Client ID**。
 
-#### 2. 配置 GitHub Secrets
+#### 2. 部署 OAuth 代理（推荐用于自定义域名）
+
+**重要**：如果使用自定义域名（如 `ai.jisuye.com`），需要部署 OAuth 代理来解决 CORS 问题。
+
+详细说明请查看 [CLOUDFLARE-WORKER-DEPLOY.md](./CLOUDFLARE-WORKER-DEPLOY.md) 或 [OAUTH-CORS-SOLUTION.md](./OAUTH-CORS-SOLUTION.md)。
+
+快速部署：
+```bash
+# 1. 安装 Wrangler CLI
+npm install -g wrangler
+
+# 2. 登录
+wrangler login
+
+# 3. 部署
+wrangler deploy cloudflare-worker.js --name github-oauth-proxy
+```
+
+部署后会获得 URL，例如：`https://github-oauth-proxy.your-subdomain.workers.dev`
+
+#### 3. 配置 GitHub Secrets
 
 在 GitHub 仓库的 `Settings > Secrets and variables > Actions` 中添加：
 
 - `CLIENT_ID`: 你的 GitHub OAuth App Client ID
 - `REPO_NAME`: 数据仓库名称（可选，默认为 `jisuye-ext-data`）
+- `OAUTH_PROXY_URL`: OAuth 代理 URL（来自步骤 2，推荐用于自定义域名）
 
-#### 3. 启用 GitHub Pages
+#### 4. 启用 GitHub Pages
 
 在 GitHub 仓库的 `Settings > Pages` 中：
 
 - **Source**: GitHub Actions
 
-#### 4. 推送代码
+#### 5. 推送代码
 
 ```bash
 git add .
@@ -90,6 +111,10 @@ VITE_GITHUB_CLIENT_ID=your_github_client_id_here
 
 # 可选：GitHub 仓库名称（默认 jisuye-ext-data）
 VITE_GITHUB_REPO_NAME=jisuye-ext-data
+
+# OAuth 代理 URL（推荐用于自定义域名）
+# 获取方式：部署 cloudflare-worker.js 到 Cloudflare Workers
+VITE_OAUTH_PROXY_URL=https://your-worker.workers.dev
 
 # 开发模式配置
 VITE_DEV_MODE=true
@@ -149,6 +174,16 @@ aijisuye/
 
 A: 确保 `.env.development` 中的 `VITE_GITHUB_CLIENT_ID` 正确，并且 GitHub OAuth App 的回调 URL 包含 `http://localhost:5173/auth/callback`。
 
+### Q: 自定义域名部署后 OAuth 报 CORS 错误？
+
+A: 这是 GitHub OAuth 的 CORS 限制。需要部署 OAuth 代理来解决：
+
+1. 部署 `cloudflare-worker.js` 到 Cloudflare Workers（参考 [CLOUDFLARE-WORKER-DEPLOY.md](./CLOUDFLARE-WORKER-DEPLOY.md)）
+2. 在 GitHub Secrets 中添加 `OAUTH_PROXY_URL`
+3. 详细说明请查看 [OAUTH-CORS-SOLUTION.md](./OAUTH-CORS-SOLUTION.md)
+
+注意：使用 GitHub Pages 默认域名（`https://your-username.github.io/aijisuye/`）不需要代理。
+
 ### Q: 部署后访问 /auth/callback 报 404？
 
 A: 确认 `dist/404.html` 和 `dist/.nojekyll` 文件存在，并已正确部署。详细说明请参考 `docs/SPAFALLBACK-LOGIC.md`。
@@ -162,6 +197,17 @@ A: 点击"退出登录"按钮，清除本地存储的 access token，然后用�
 A:
 - **开发模式**: 本地 `dev-data/` 目录
 - **生产模式**: 用户的 GitHub 私有仓库 `jisuye-ext-data`
+
+## 文档
+
+- [构建检查清单](./BUILD-CHECKLIST.md) - 构建前的检查项
+- [部署检查清单](./DEPLOYMENT-CHECKLIST.md) - 部署前的检查项
+- [GitHub Pages 部署指南](./GITHUB-PAGES-DEPLOY.md) - 详细的部署步骤
+- [SPA 路由回退逻辑](./SPAFALLBACK-LOGIC.md) - GitHub Pages SPA 路由处理说明
+- [Git 提交清单](./docs/GIT-CHECKLIST.md) - Git 提交前的检查项
+- [环境变量配置指南](./ENVIRONMENT-VARIABLES.md) - 环境变量详细说明
+- [OAuth CORS 解决方案](./OAUTH-CORS-SOLUTION.md) - CORS 问题分析和解决方案
+- [Cloudflare Worker 部署](./CLOUDFLARE-WORKER-DEPLOY.md) - Worker 部署快速指南
 
 ## 许可证
 
