@@ -41,8 +41,8 @@ jobs:
 
       - name: Build
         env:
-          VITE_GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
-          VITE_GITHUB_REPO_NAME: ${{ secrets.GITHUB_REPO_NAME || 'jisuye-ext-data' }}
+          VITE_GITHUB_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          VITE_GITHUB_REPO_NAME: ${{ secrets.REPO_NAME || 'jisuye-ext-data' }}
         run: pnpm build
 
       - name: Setup Pages

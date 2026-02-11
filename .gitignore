@@ -14,6 +14,9 @@ build/
 .env.development
 .env.production
 
+# 保留环境变量示例文件
+!.env.example
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
