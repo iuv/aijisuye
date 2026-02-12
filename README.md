@@ -205,9 +205,11 @@ A:
 - [GitHub Pages 部署指南](./GITHUB-PAGES-DEPLOY.md) - 详细的部署步骤
 - [SPA 路由回退逻辑](./SPAFALLBACK-LOGIC.md) - GitHub Pages SPA 路由处理说明
 - [Git 提交清单](./docs/GIT-CHECKLIST.md) - Git 提交前的检查项
-- [环境变量配置指南](./ENVIRONMENT-VARIABLES.md) - 环境变量详细说明
-- [OAuth CORS 解决方案](./OAUTH-CORS-SOLUTION.md) - CORS 问题分析和解决方案
-- [Cloudflare Worker 部署](./CLOUDFLARE-WORKER-DEPLOY.md) - Worker 部署快速指南
+- [环境变量配置指南](./docs/ENVIRONMENT-VARIABLES.md) - 环境变量详细说明
+- [OAuth CORS 解决方案](./docs/OAUTH-CORS-SOLUTION.md) - CORS 问题分析和解决方案
+- [Cloudflare Worker 部署](./docs/CLOUDFLARE-WORKER-DEPLOY.md) - Worker 部署快速指南
+- [CORS 快速修复](./docs/CORS-FIX-QUICK.md) - 5 分钟快速修复
+- [CORS 故障排查](./docs/CORS-TROUBLESHOOTING.md) - 详细故障排查步骤
 
 ## 许可证
 

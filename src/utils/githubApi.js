@@ -1,5 +1,19 @@
 import { Octokit } from 'octokit'
 
+// 浏览器兼容的 base64 编解码函数
+const toBase64 = (str) => {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(str)
+  return btoa(String.fromCharCode(...data))
+}
+
+const fromBase64 = (str) => {
+  const binaryString = atob(str)
+  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0))
+  const decoder = new TextDecoder()
+  return decoder.decode(bytes)
+}
+
 export class GitHubDataStore {
   constructor(accessToken, owner, repo) {
     this.octokit = new Octokit({ auth: accessToken })
@@ -64,7 +78,7 @@ export class GitHubDataStore {
           repo: this.repo,
           path,
           message: `Initialize ${path}`,
-          content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64')
+          content: toBase64(JSON.stringify(content, null, 2))
         })
       }
 
@@ -83,7 +97,7 @@ export class GitHubDataStore {
         repo: this.repo,
         path
       })
-      const content = Buffer.from(data.content, 'base64').toString('utf-8')
+      const content = fromBase64(data.content)
       return JSON.parse(content)
     } catch (error) {
       if (error.status === 404) {
@@ -107,7 +121,7 @@ export class GitHubDataStore {
         // 文件不存在，创建新文件
       }
 
-      const contentBase64 = Buffer.from(JSON.stringify(content, null, 2)).toString('base64')
+      const contentBase64 = toBase64(JSON.stringify(content, null, 2))
 
       await this.octokit.rest.repos.createOrUpdateFileContents({
         owner: this.owner,
