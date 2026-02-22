@@ -10,7 +10,12 @@ export const useSettingsStore = defineStore('settings', {
       language: 'zh-CN',
       showSearch: true,
       showCategories: true,
-      showIcons: true
+      showIcons: true,
+      searchEngines: [
+        { id: 'google', name: 'Google', url: 'https://www.google.com/search?q={q}', icon: '🔍' },
+        { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q={q}', icon: '🔎' }
+      ],
+      defaultSearchEngine: 'google'
     }
   }),
 
