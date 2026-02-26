@@ -46,7 +46,6 @@ export const useSkinStore = defineStore('skin', {
     async fetchSkins() {
       try {
         const authStore = useAuthStore()
-        const owner = import.meta.env.VITE_GITHUB_REPO_OWNER
         const repo = import.meta.env.VITE_GITHUB_REPO_NAME
 
         // 开发模式或未认证时，直接使用默认皮肤
@@ -55,7 +54,7 @@ export const useSkinStore = defineStore('skin', {
           return
         }
 
-        const dataStore = createDataStore(authStore.accessToken, owner, repo)
+        const dataStore = createDataStore(authStore.accessToken, authStore.user?.login, repo)
         const skinsData = await dataStore.getSkins()
 
         // 如果获取失败或数据为空，使用默认皮肤
