@@ -68,7 +68,8 @@ export class GitHubDataStore {
           showSearch: true,
           showCategories: true,
           showIcons: true
-        }
+        },
+        'config/skins.json': { skins: [] }
       }
 
       // 批量创建文件
@@ -164,7 +165,12 @@ export class GitHubDataStore {
   }
 
   async getSkins() {
-    return this.getFile('config/skins.json')
+    const data = await this.getFile('config/skins.json')
+    // 兼容两种格式: { skins: [...] } 或直接数组
+    if (data && data.skins) {
+      return data.skins
+    }
+    return data
   }
 
   async saveSkins(skins, message = 'Update skins') {

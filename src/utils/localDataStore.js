@@ -79,7 +79,12 @@ export class LocalDataStore {
   }
 
   async getSkins() {
-    return this.getFile('skins.json')
+    const data = await this.getFile('skins.json')
+    // 兼容两种格式: { skins: [...] } 或直接数组
+    if (data && data.skins) {
+      return data.skins
+    }
+    return data
   }
 
   async saveSkins(skins, message = 'Update skins') {
