@@ -41,6 +41,20 @@
         <el-switch v-model="settingsForm.showIcons" />
       </el-form-item>
 
+      <el-form-item :label="i18nStore.t('defaultSearchEngine')">
+        <el-select v-model="settingsForm.defaultSearchEngine" style="width: 100%">
+          <el-option
+            v-for="engine in settingsForm.searchEngines"
+            :key="engine.id"
+            :label="engine.name"
+            :value="engine.id"
+          />
+        </el-select>
+        <div style="color: #909399; font-size: 12px; margin-top: 0.5rem;">
+          {{ i18nStore.t('manageSearchEngines') }} <router-link to="/admin" style="color: var(--primary-color);">{{ i18nStore.t('admin') }}</router-link>
+        </div>
+      </el-form-item>
+
       <el-form-item :label="i18nStore.t('skinLabel')">
         <el-select v-model="selectedSkin" :placeholder="i18nStore.t('selectSkin')" style="width: 100%">
           <el-option
@@ -120,12 +134,14 @@ const skinStore = useSkinStore()
 const i18nStore = useI18nStore()
 
 const settingsForm = ref({
-  siteName: '我的导航',
-  siteDescription: '个人收藏的实用网站导航',
+  siteName: '',
+  siteDescription: '',
   language: 'zh-CN',
   showSearch: true,
   showCategories: true,
-  showIcons: true
+  showIcons: true,
+  searchEngines: [],
+  defaultSearchEngine: 'google'
 })
 
 const selectedSkin = ref('default')
@@ -142,10 +158,14 @@ const skinStyle = computed(() => {
 })
 
 onMounted(async () => {
+  // 先从GitHub仓库加载设置数据
+  await settingsStore.fetchSettings()
+
   await skinStore.fetchSkins()
   if (skinStore.skins.length > 0) {
     selectedSkin.value = skinStore.currentSkin || skinStore.skins[0].id
   }
+  // 将加载的设置数据赋值给表单
   settingsForm.value = { ...settingsStore.settings }
 })
 

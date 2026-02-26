@@ -23,7 +23,7 @@
     </header>
 
     <!-- 搜索框 -->
-    <div v-if="settingsStore.settings.showSearch && searchEngines" class="search-section">
+    <div v-if="settingsStore.settings.showSearch && searchEngines && searchEngines.length > 0" class="search-section">
       <div class="search-container">
         <div class="search-input-wrapper">
           <input

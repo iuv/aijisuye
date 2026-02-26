@@ -88,7 +88,13 @@ export const useI18nStore = defineStore('i18n', {
           deleteLinkConfirm: '确认删除该链接吗？',
           deleteEngineConfirm: '确认删除该搜索引擎吗？',
           operationSuccess: '操作成功',
-          operationFailed: '操作失败'
+          operationFailed: '操作失败',
+          autoFetch: '自动获取',
+          fetching: '获取中...',
+          urlInfoFetched: '网站信息已获取',
+          urlInfoPartial: '已从URL提取标题',
+          urlInfoFailed: '获取网站信息失败，请手动填写',
+          manageSearchEngines: '管理搜索引擎请前往'
         },
         'en-US': {
           siteName: 'AI Speedy Nav',
@@ -170,7 +176,13 @@ export const useI18nStore = defineStore('i18n', {
           deleteLinkConfirm: 'Are you sure you want to delete this link?',
           deleteEngineConfirm: 'Are you sure you want to delete this search engine?',
           operationSuccess: 'Operation successful',
-          operationFailed: 'Operation failed'
+          operationFailed: 'Operation failed',
+          autoFetch: 'Auto Fetch',
+          fetching: 'Fetching...',
+          urlInfoFetched: 'Website info fetched',
+          urlInfoPartial: 'Title extracted from URL',
+          urlInfoFailed: 'Failed to fetch website info, please fill manually',
+          manageSearchEngines: 'Manage search engines at'
         }
       }
       return (key, params = {}) => {

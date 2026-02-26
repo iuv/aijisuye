@@ -74,18 +74,6 @@
       <el-tab-pane :label="i18nStore.t('searchEngines')" name="searchEngines">
         <div class="tab-content">
           <div class="toolbar">
-            <el-form inline>
-              <el-form-item :label="i18nStore.t('defaultSearchEngine')">
-                <el-select v-model="settingsStore.settings.defaultSearchEngine" style="width: 200px">
-                  <el-option
-                    v-for="engine in settingsStore.settings.searchEngines"
-                    :key="engine.id"
-                    :label="engine.name"
-                    :value="engine.id"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-form>
             <el-button type="primary" @click="showAddSearchEngineDialog">{{ i18nStore.t('addSearchEngine') }}</el-button>
           </div>
 
@@ -224,12 +212,27 @@
     <!-- 添加/编辑链接对话框 -->
     <el-dialog v-model="linkDialogVisible" :title="linkDialogTitle" width="600px">
       <el-form :model="linkForm" label-width="80px">
-        <el-form-item :label="i18nStore.t('title')">
-          <el-input v-model="linkForm.title" :placeholder="i18nStore.t('linkTitlePlaceholder')" />
-        </el-form-item>
         <el-form-item label="URL">
-          <el-input v-model="linkForm.url" placeholder="example.com 或 https://example.com" />
-          <span style="color: #909399; font-size: 12px;">{{ i18nStore.t('urlAutoComplete') }}</span>
+          <el-input
+            v-model="linkForm.url"
+            placeholder="example.com 或 https://example.com"
+            @blur="onUrlBlur"
+            clearable
+          />
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+            <el-button
+              size="small"
+              :loading="fetchingUrlInfo"
+              @click="fetchUrlInfo"
+              :disabled="!linkForm.url"
+            >
+              {{ fetchingUrlInfo ? i18nStore.t('fetching') : i18nStore.t('autoFetch') }}
+            </el-button>
+            <span style="color: #909399; font-size: 12px;">{{ i18nStore.t('urlAutoComplete') }}</span>
+          </div>
+        </el-form-item>
+        <el-form-item :label="i18nStore.t('title')">
+          <el-input v-model="linkForm.title" :placeholder="i18nStore.t('linkTitlePlaceholder')" clearable />
         </el-form-item>
         <el-form-item :label="i18nStore.t('description')">
           <el-input
@@ -293,7 +296,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLinksStore } from '@/stores/links'
@@ -309,6 +312,13 @@ const i18nStore = useI18nStore()
 
 // 标签页
 const activeTab = ref('categories')
+
+// 组件挂载时加载设置数据
+onMounted(async () => {
+  // 确保从GitHub仓库加载设置数据
+  await settingsStore.fetchSettings()
+  await skinStore.fetchSkins()
+})
 
 // 过滤分类
 const filterCategory = ref('')
@@ -427,6 +437,100 @@ async function deleteCategory(categoryId) {
   }
 }
 
+// 获取网站信息的状态
+const fetchingUrlInfo = ref(false)
+
+// URL输入框失焦时自动补全协议
+function onUrlBlur() {
+  if (!linkForm.url) return
+
+  let url = linkForm.url.trim()
+  // 自动补全 https://（如果URL不包含协议且不是以/开头）
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+    linkForm.url = 'https://' + url
+  }
+}
+
+// 从URL中提取域名作为标题
+function extractDomainName(url) {
+  try {
+    const urlObj = new URL(url)
+    // 移除www.前缀并提取域名
+    let domain = urlObj.hostname.replace(/^www\./, '')
+    // 首字母大写
+    return domain.charAt(0).toUpperCase() + domain.slice(1)
+  } catch {
+    return ''
+  }
+}
+
+// 获取网站信息
+async function fetchUrlInfo() {
+  if (!linkForm.url) return
+
+  let url = linkForm.url.trim()
+  // 自动补全协议
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+    url = 'https://' + url
+    linkForm.url = url
+  }
+
+  fetchingUrlInfo.value = true
+
+  try {
+    // 如果标题为空，从URL提取域名作为标题
+    if (!linkForm.title) {
+      const domainName = extractDomainName(url)
+      if (domainName) {
+        linkForm.title = domainName
+        ElMessage.success(i18nStore.t('urlInfoFetched'))
+      }
+    }
+
+    // 尝试获取网页的meta信息（可能会因CORS失败）
+    try {
+      const response = await fetch(url, {
+        mode: 'cors',
+        credentials: 'omit'
+      })
+
+      if (response.ok) {
+        const html = await response.text()
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(html, 'text/html')
+
+        // 提取标题
+        const title = doc.querySelector('title')?.textContent?.trim()
+        if (title && !linkForm.title) {
+          linkForm.title = title
+        }
+
+        // 提取描述
+        const description = doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim()
+        if (description && !linkForm.description) {
+          linkForm.description = description
+        }
+
+        ElMessage.success(i18nStore.t('urlInfoFetched'))
+      }
+    } catch (corsError) {
+      // CORS错误是正常的，不影响用户体验
+      console.log('[Admin] CORS error while fetching URL info (this is normal):', corsError.message)
+      // 如果已经从域名提取了标题，不显示错误
+      if (linkForm.title) {
+        // 已经成功提取，不需要额外提示
+      } else {
+        ElMessage.info(i18nStore.t('urlInfoPartial'))
+      }
+    }
+  } catch (error) {
+    console.error('[Admin] Error fetching URL info:', error)
+    ElMessage.warning(i18nStore.t('urlInfoFailed'))
+  } finally {
+    fetchingUrlInfo.value = false
+  }
+}
+
 // 显示添加链接对话框
 function showAddLinkDialog() {
   Object.assign(linkForm, {
@@ -459,11 +563,10 @@ async function saveLink() {
     return
   }
 
-  // 自动补全 https://（如果URL不包含协议且不是以/开头）
+  // 确保URL有协议
   let url = linkForm.url.trim()
   if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
     url = 'https://' + url
-    console.log('[Admin] Auto-prepended https:// to URL:', url)
   }
 
   try {
