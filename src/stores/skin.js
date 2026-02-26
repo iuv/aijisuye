@@ -97,6 +97,12 @@ export const useSkinStore = defineStore('skin', {
       } else if (this.skins.length > 0) {
         this.applySkin(this.skins[0].id)
       }
+    },
+
+    // 同步到远程（皮肤数据通常不需要同步，因为用户只能选择不能修改）
+    async syncToRemote() {
+      console.log('[Skin] No sync needed for skin data')
+      return Promise.resolve()
     }
   }
 })

@@ -7,6 +7,19 @@
       </div>
 
       <nav class="header-right">
+        <!-- 同步按钮 -->
+        <button
+          v-if="syncStore.showSyncButton && !isDevMode"
+          @click="handleSync"
+          :disabled="syncStore.syncStatus === 'syncing'"
+          class="sync-button"
+          :class="{ 'sync-button-syncing': syncStore.syncStatus === 'syncing' }"
+        >
+          <span v-if="syncStore.syncStatus === 'syncing'">⏳</span>
+          <span v-else>🔄</span>
+          {{ syncStore.syncStatusText }}
+        </button>
+
         <div v-if="!isDevMode" class="nav-buttons">
           <template v-if="authStore.isAuthenticated">
             <router-link to="/admin" class="nav-link">{{ i18nStore.t('admin') }}</router-link>
@@ -91,16 +104,18 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref, watch } from 'vue'
+import { onMounted, computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useLinksStore } from '@/stores/links'
 import { useSettingsStore } from '@/stores/settings'
 import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
+import { useSyncStore } from '@/stores/sync'
 
 const linksStore = useLinksStore()
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 const i18nStore = useI18nStore()
+const syncStore = useSyncStore()
 
 // 搜索相关
 const searchQuery = ref('')
@@ -161,6 +176,24 @@ function performSearch() {
   window.open(url, '_blank')
 }
 
+// 处理同步
+async function handleSync() {
+  try {
+    await syncStore.syncToRemote()
+  } catch (error) {
+    console.error('[Home] Sync failed:', error)
+  }
+}
+
+// 处理页面关闭前的提示
+function handleBeforeUnload(event) {
+  if (syncStore.checkUnsavedChanges()) {
+    event.preventDefault()
+    event.returnValue = ''
+    return ''
+  }
+}
+
 // 监听设置更新，设置默认搜索引擎
 watch(() => settingsStore.settings.defaultSearchEngine, (newVal) => {
   if (newVal && !selectedSearchEngine.value) {
@@ -177,10 +210,8 @@ onMounted(async () => {
     authStore.checkAuth()
     console.log('[Home] After checkAuth - Auth state:', authStore.isAuthenticated)
 
-    await Promise.all([
-      linksStore.fetchData(),
-      settingsStore.fetchSettings()
-    ])
+    // 从远程加载初始数据
+    await syncStore.loadFromRemote()
 
     // 设置默认搜索引擎
     if (settingsStore.settings.defaultSearchEngine) {
@@ -197,9 +228,18 @@ onMounted(async () => {
     console.log('[Home] Categories:', linksStore.categories)
     console.log('[Home] Links:', linksStore.links)
     console.log('[Home] Settings:', settingsStore.settings)
+    console.log('[Home] Sync state:', syncStore.hasUnsyncedChanges)
+
+    // 添加页面关闭事件监听
+    window.addEventListener('beforeunload', handleBeforeUnload)
   } catch (error) {
     console.error('[Home] Failed to load data:', error)
   }
+})
+
+onBeforeUnmount(() => {
+  // 移除页面关闭事件监听
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 </script>
 
@@ -328,6 +368,45 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.sync-button {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.sync-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.sync-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sync-button-syncing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .nav-link {

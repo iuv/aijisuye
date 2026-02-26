@@ -6,6 +6,19 @@
       </div>
 
       <nav class="header-right">
+        <!-- 同步按钮 -->
+        <button
+          v-if="syncStore.showSyncButton"
+          @click="handleSync"
+          :disabled="syncStore.syncStatus === 'syncing'"
+          class="sync-button"
+          :class="{ 'sync-button-syncing': syncStore.syncStatus === 'syncing' }"
+        >
+          <span v-if="syncStore.syncStatus === 'syncing'">⏳</span>
+          <span v-else>🔄</span>
+          {{ syncStore.syncStatusText }}
+        </button>
+
         <div class="nav-buttons">
           <router-link to="/" class="nav-link">{{ i18nStore.t('home') }}</router-link>
           <router-link to="/settings" class="nav-link">{{ i18nStore.t('settings') }}</router-link>
@@ -296,19 +309,21 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useLinksStore } from '@/stores/links'
 import { useSettingsStore } from '@/stores/settings'
 import { useSkinStore } from '@/stores/skin'
 import { useI18nStore } from '@/stores/i18n'
+import { useSyncStore } from '@/stores/sync'
 
 const router = useRouter()
 const linksStore = useLinksStore()
 const settingsStore = useSettingsStore()
 const skinStore = useSkinStore()
 const i18nStore = useI18nStore()
+const syncStore = useSyncStore()
 
 // 标签页
 const activeTab = ref('categories')
@@ -318,6 +333,31 @@ onMounted(async () => {
   // 确保从GitHub仓库加载设置数据
   await settingsStore.fetchSettings()
   await skinStore.fetchSkins()
+  // 添加页面关闭事件监听
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+// 处理同步
+async function handleSync() {
+  try {
+    await syncStore.syncToRemote()
+  } catch (error) {
+    console.error('[Admin] Sync failed:', error)
+  }
+}
+
+// 处理页面关闭前的提示
+function handleBeforeUnload(event) {
+  if (syncStore.checkUnsavedChanges()) {
+    event.preventDefault()
+    event.returnValue = ''
+    return ''
+  }
+}
+
+onBeforeUnmount(() => {
+  // 移除页面关闭事件监听
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 // 过滤分类
@@ -787,6 +827,45 @@ function applyCurrentSkin() {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.sync-button {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.sync-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.sync-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sync-button-syncing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .nav-link {
