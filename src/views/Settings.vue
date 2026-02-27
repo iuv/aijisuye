@@ -70,13 +70,36 @@
 
       <el-form-item :label="i18nStore.t('skinLabel')">
         <el-select v-model="selectedSkin" :placeholder="i18nStore.t('selectSkin')" style="width: 100%">
-          <el-option
-            v-for="skin in skinStore.skins"
-            :key="skin.id"
-            :label="i18nStore.locale === 'zh-CN' ? skin.name : skin.nameEn"
-            :value="skin.id"
-          />
+          <el-option-group :label="i18nStore.t('defaultSkins')">
+            <el-option
+              v-for="skin in skinStore.defaultSkinsList"
+              :key="skin.id"
+              :label="i18nStore.locale === 'zh-CN' ? skin.name : skin.nameEn"
+              :value="skin.id"
+            />
+          </el-option-group>
+          <el-option-group v-if="skinStore.customSkins.length > 0" :label="i18nStore.t('customSkins')">
+            <el-option
+              v-for="skin in skinStore.customSkins"
+              :key="skin.id"
+              :label="skin.name"
+              :value="skin.id"
+            />
+          </el-option-group>
         </el-select>
+        <div style="margin-top: 0.5rem;">
+          <el-button size="small" @click="showCustomSkinDialog = true">
+            {{ i18nStore.t('createCustomSkin') }}
+          </el-button>
+          <el-button
+            v-if="selectedSkin && !skinStore.isDefaultSkin(selectedSkin)"
+            size="small"
+            type="danger"
+            @click="handleDeleteCustomSkin"
+          >
+            {{ i18nStore.t('deleteCurrentSkin') }}
+          </el-button>
+        </div>
       </el-form-item>
 
       <el-form-item :label="i18nStore.t('skinPreview')">
@@ -130,6 +153,42 @@
         <span class="footer-copyright">© 2026 jisuye.com</span>
       </div>
     </footer>
+
+    <!-- 自定义皮肤创建对话框 -->
+    <el-dialog
+      v-model="showCustomSkinDialog"
+      :title="i18nStore.t('createCustomSkin')"
+      width="500px"
+    >
+      <el-form :model="customSkinForm" label-width="100px">
+        <el-form-item :label="i18nStore.t('skinName')">
+          <el-input v-model="customSkinForm.name" :placeholder="i18nStore.t('skinNamePlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="i18nStore.t('baseSkin')">
+          <el-select v-model="customSkinForm.baseSkinId" style="width: 100%">
+            <el-option
+              v-for="skin in skinStore.defaultSkinsList"
+              :key="skin.id"
+              :label="i18nStore.locale === 'zh-CN' ? skin.name : skin.nameEn"
+              :value="skin.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="i18nStore.t('primaryColor')">
+          <el-color-picker v-model="customSkinForm.variables['--primary-color']" />
+        </el-form-item>
+        <el-form-item :label="i18nStore.t('bgColor')">
+          <el-color-picker v-model="customSkinForm.variables['--bg-color']" />
+        </el-form-item>
+        <el-form-item :label="i18nStore.t('textColor')">
+          <el-color-picker v-model="customSkinForm.variables['--text-color']" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCustomSkinDialog = false">{{ i18nStore.t('cancel') }}</el-button>
+        <el-button type="primary" @click="handleCreateCustomSkin">{{ i18nStore.t('create') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -160,9 +219,19 @@ const settingsForm = ref({
 })
 
 const selectedSkin = ref('default')
+const showCustomSkinDialog = ref(false)
+const customSkinForm = ref({
+  name: '',
+  baseSkinId: 'default',
+  variables: {
+    '--primary-color': '#409eff',
+    '--bg-color': '#ffffff',
+    '--text-color': '#303133'
+  }
+})
 
 const skinStyle = computed(() => {
-  const skin = skinStore.skins.find(s => s.id === selectedSkin.value)
+  const skin = skinStore.allSkins.find(s => s.id === selectedSkin.value)
   if (!skin || !skin.variables) return {}
   return {
     ...skin.variables,
@@ -176,6 +245,67 @@ async function saveSettings() {
   await settingsStore.updateSettings(settingsForm.value)
   skinStore.applySkin(selectedSkin.value)
   ElMessage.success(i18nStore.t('operationSuccess'))
+}
+
+// 创建自定义皮肤
+async function handleCreateCustomSkin() {
+  if (!customSkinForm.value.name.trim()) {
+    ElMessage.warning(i18nStore.t('pleaseInputSkinName'))
+    return
+  }
+
+  try {
+    // 获取基础皮肤变量
+    const baseSkin = skinStore.defaultSkinsList.find(s => s.id === customSkinForm.value.baseSkinId)
+    const baseVariables = baseSkin ? { ...baseSkin.variables } : {}
+
+    // 合并自定义变量
+    const newSkin = {
+      name: customSkinForm.value.name,
+      nameEn: customSkinForm.value.name,
+      variables: {
+        ...baseVariables,
+        ...customSkinForm.value.variables
+      }
+    }
+
+    await skinStore.addCustomSkin(newSkin)
+    showCustomSkinDialog.value = false
+
+    // 重置表单
+    customSkinForm.value = {
+      name: '',
+      baseSkinId: 'default',
+      variables: {
+        '--primary-color': '#409eff',
+        '--bg-color': '#ffffff',
+        '--text-color': '#303133'
+      }
+    }
+
+    ElMessage.success(i18nStore.t('createSuccess'))
+  } catch (error) {
+    console.error('Failed to create custom skin:', error)
+    ElMessage.error(i18nStore.t('createFailed'))
+  }
+}
+
+// 删除当前选中的自定义皮肤
+async function handleDeleteCustomSkin() {
+  if (!selectedSkin.value || skinStore.isDefaultSkin(selectedSkin.value)) {
+    return
+  }
+
+  try {
+    await skinStore.deleteCustomSkin(selectedSkin.value)
+    // 切换到默认皮肤
+    selectedSkin.value = 'default'
+    skinStore.applySkin('default')
+    ElMessage.success(i18nStore.t('deleteSuccess'))
+  } catch (error) {
+    console.error('Failed to delete custom skin:', error)
+    ElMessage.error(i18nStore.t('deleteFailed'))
+  }
 }
 
 // 处理同步
@@ -200,10 +330,14 @@ onMounted(async () => {
   // 先从GitHub仓库加载设置数据
   await settingsStore.fetchSettings()
 
-  await skinStore.fetchSkins()
-  if (skinStore.skins.length > 0) {
-    selectedSkin.value = skinStore.currentSkin || skinStore.skins[0].id
-  }
+  // 加载用户保存的皮肤（会自动判断是否需要加载自定义皮肤）
+  await skinStore.loadSavedSkin()
+
+  // 加载自定义皮肤列表（设置页面需要显示）
+  await skinStore.fetchCustomSkins()
+
+  selectedSkin.value = skinStore.currentSkin || 'default'
+
   // 将加载的设置数据赋值给表单
   settingsForm.value = { ...settingsStore.settings }
 

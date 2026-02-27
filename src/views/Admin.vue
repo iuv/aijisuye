@@ -122,7 +122,7 @@
 
           <div class="skins-grid">
             <div
-              v-for="skin in skinStore.skins"
+              v-for="skin in skinStore.allSkins"
               :key="skin.id"
               @click="previewSkin(skin.id)"
               :class="['skin-card', { active: skinStore.currentSkin === skin.id, system: skin.isSystem }]"
@@ -332,7 +332,8 @@ const activeTab = ref('categories')
 onMounted(async () => {
   // 确保从GitHub仓库加载设置数据
   await settingsStore.fetchSettings()
-  await skinStore.fetchSkins()
+  await skinStore.loadSavedSkin()
+  await skinStore.fetchCustomSkins()
   // 添加页面关闭事件监听
   window.addEventListener('beforeunload', handleBeforeUnload)
 })
@@ -781,11 +782,11 @@ function getSkinPreviewStyle(skin) {
 
 function previewSkin(skinId) {
   skinStore.applySkin(skinId)
-  ElMessage.success(`已预览 "${skinStore.skins.find(s => s.id === skinId)?.name || skinId}" 皮肤`)
+  ElMessage.success(`已预览 "${skinStore.allSkins.find(s => s.id === skinId)?.name || skinId}" 皮肤`)
 }
 
 function resetToDefaultSkin() {
-  const defaultSkin = skinStore.skins.find(s => s.isDefault)
+  const defaultSkin = skinStore.defaultSkinsList.find(s => s.isDefault)
   if (defaultSkin) {
     skinStore.applySkin(defaultSkin.id)
     ElMessage.success('已恢复默认皮肤')

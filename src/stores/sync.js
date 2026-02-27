@@ -139,8 +139,11 @@ export const useSyncStore = defineStore('sync', {
         await Promise.all([
           settingsStore.fetchSettings(),
           linksStore.fetchData(),
-          skinStore.fetchSkins()
+          skinStore.fetchCustomSkins()
         ])
+
+        // 应用保存的皮肤
+        await skinStore.loadSavedSkin()
         
         this.lastSyncTime = new Date().toISOString()
         this.initialized = true

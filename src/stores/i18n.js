@@ -94,7 +94,23 @@ export const useI18nStore = defineStore('i18n', {
           urlInfoFetched: '网站信息已获取',
           urlInfoPartial: '已从URL提取标题',
           urlInfoFailed: '获取网站信息失败，请手动填写',
-          manageSearchEngines: '管理搜索引擎请前往'
+          manageSearchEngines: '管理搜索引擎请前往',
+          defaultSkins: '默认皮肤',
+          customSkins: '自定义皮肤',
+          createCustomSkin: '创建自定义皮肤',
+          deleteCurrentSkin: '删除当前皮肤',
+          skinName: '皮肤名称',
+          skinNamePlaceholder: '请输入皮肤名称',
+          baseSkin: '基于皮肤',
+          primaryColor: '主色调',
+          bgColor: '背景色',
+          textColor: '文字颜色',
+          create: '创建',
+          pleaseInputSkinName: '请输入皮肤名称',
+          createSuccess: '创建成功',
+          createFailed: '创建失败',
+          deleteSuccess: '删除成功',
+          deleteFailed: '删除失败'
         },
         'en-US': {
           siteName: 'AI Speedy Nav',
@@ -182,7 +198,23 @@ export const useI18nStore = defineStore('i18n', {
           urlInfoFetched: 'Website info fetched',
           urlInfoPartial: 'Title extracted from URL',
           urlInfoFailed: 'Failed to fetch website info, please fill manually',
-          manageSearchEngines: 'Manage search engines at'
+          manageSearchEngines: 'Manage search engines at',
+          defaultSkins: 'Default Skins',
+          customSkins: 'Custom Skins',
+          createCustomSkin: 'Create Custom Skin',
+          deleteCurrentSkin: 'Delete Current Skin',
+          skinName: 'Skin Name',
+          skinNamePlaceholder: 'Please enter skin name',
+          baseSkin: 'Base Skin',
+          primaryColor: 'Primary Color',
+          bgColor: 'Background Color',
+          textColor: 'Text Color',
+          create: 'Create',
+          pleaseInputSkinName: 'Please enter skin name',
+          createSuccess: 'Created successfully',
+          createFailed: 'Failed to create',
+          deleteSuccess: 'Deleted successfully',
+          deleteFailed: 'Failed to delete'
         }
       }
       return (key, params = {}) => {

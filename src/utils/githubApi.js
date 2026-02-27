@@ -170,6 +170,11 @@ export class GitHubDataStore {
     if (data && data.skins) {
       return data.skins
     }
+    // 如果文件不存在，自动创建空的 skins.json（避免后续 404）
+    if (data === null) {
+      await this.writeFile('config/skins.json', { skins: [] }, 'Initialize skins config')
+      return []
+    }
     return data
   }
 
