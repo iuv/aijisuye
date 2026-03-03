@@ -1,34 +1,8 @@
 import { defineStore } from 'pinia'
-import { createDataStore } from '@/utils/dataStore'
+import { createUserDataStore } from '@/utils/dataStore'
 import { defaultSkins } from '@/utils/defaultSkins'
 import { useAuthStore } from './auth'
-
-// 安全访问 localStorage
-const safeLocalStorage = {
-  getItem(key) {
-    try {
-      return localStorage.getItem(key)
-    } catch (error) {
-      console.warn('localStorage access failed:', error)
-      return null
-    }
-  },
-  setItem(key, value) {
-    try {
-      localStorage.setItem(key, value)
-    } catch (error) {
-      console.warn('localStorage set failed:', error)
-    }
-  }
-}
-
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+import { safeLocalStorage, generateUUID } from '@/utils/helpers'
 
 export const useSkinStore = defineStore('skin', {
   state: () => ({
@@ -63,7 +37,6 @@ export const useSkinStore = defineStore('skin', {
 
       try {
         const authStore = useAuthStore()
-        const repo = import.meta.env.VITE_GITHUB_REPO_NAME
 
         // 开发模式或未认证时，不加载自定义皮肤
         if (import.meta.env.VITE_DEV_MODE === 'true' || !authStore.accessToken) {
@@ -71,7 +44,7 @@ export const useSkinStore = defineStore('skin', {
           return
         }
 
-        const dataStore = createDataStore(authStore.accessToken, authStore.user?.login, repo)
+        const dataStore = createUserDataStore(authStore.accessToken, authStore.user?.login)
         const skinsData = await dataStore.getSkins()
 
         if (skinsData && Array.isArray(skinsData) && skinsData.length > 0) {
@@ -88,13 +61,12 @@ export const useSkinStore = defineStore('skin', {
     async saveCustomSkins() {
       try {
         const authStore = useAuthStore()
-        const repo = import.meta.env.VITE_GITHUB_REPO_NAME
 
         if (!authStore.accessToken) {
           throw new Error('Not authenticated')
         }
 
-        const dataStore = createDataStore(authStore.accessToken, authStore.user?.login, repo)
+        const dataStore = createUserDataStore(authStore.accessToken, authStore.user?.login)
         await dataStore.saveSkins(this.customSkins, 'Update custom skins')
       } catch (error) {
         console.error('Failed to save custom skins:', error)

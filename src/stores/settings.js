@@ -16,7 +16,8 @@ export const useSettingsStore = defineStore('settings', {
         { id: 'google', name: 'Google', url: 'https://www.google.com/search?q={q}', icon: '🔍' },
         { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q={q}', icon: '🔎' }
       ],
-      defaultSearchEngine: 'google'
+      defaultSearchEngine: 'google',
+      linkSize: 'medium'
     },
     // 是否已从远程加载
     loaded: false

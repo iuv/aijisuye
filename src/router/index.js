@@ -14,16 +14,6 @@ const routes = [
     component: () => import('../views/Callback.vue')
   },
   {
-    path: '/debug',
-    name: 'debug',
-    component: () => import('../views/Debug.vue')
-  },
-  {
-    path: '/oauth-debug',
-    name: 'oauth-debug',
-    component: () => import('../views/OAuthDebug.vue')
-  },
-  {
     path: '/setup',
     name: 'setup',
     component: () => import('../views/SetupWizard.vue'),
@@ -55,8 +45,6 @@ function restoreFallbackPath() {
   const fallbackHash = sessionStorage.getItem('spa_fallback_hash')
 
   if (fallbackPath && fallbackPath !== '/') {
-    console.log('[Router] Restoring fallback path:', fallbackPath + fallbackSearch)
-
     // 清除保存的回退信息
     sessionStorage.removeItem('spa_fallback_path')
     sessionStorage.removeItem('spa_fallback_search')

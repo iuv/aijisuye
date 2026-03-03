@@ -68,80 +68,68 @@
         </div>
       </el-form-item>
 
-      <el-form-item :label="i18nStore.t('skinLabel')">
-        <el-select v-model="selectedSkin" :placeholder="i18nStore.t('selectSkin')" style="width: 100%">
-          <el-option-group :label="i18nStore.t('defaultSkins')">
-            <el-option
-              v-for="skin in skinStore.defaultSkinsList"
-              :key="skin.id"
-              :label="i18nStore.locale === 'zh-CN' ? skin.name : skin.nameEn"
-              :value="skin.id"
-            />
-          </el-option-group>
-          <el-option-group v-if="skinStore.customSkins.length > 0" :label="i18nStore.t('customSkins')">
-            <el-option
-              v-for="skin in skinStore.customSkins"
-              :key="skin.id"
-              :label="skin.name"
-              :value="skin.id"
-            />
-          </el-option-group>
-        </el-select>
-        <div style="margin-top: 0.5rem;">
-          <el-button size="small" @click="showCustomSkinDialog = true">
-            {{ i18nStore.t('createCustomSkin') }}
-          </el-button>
-          <el-button
-            v-if="selectedSkin && !skinStore.isDefaultSkin(selectedSkin)"
-            size="small"
-            type="danger"
-            @click="handleDeleteCustomSkin"
-          >
-            {{ i18nStore.t('deleteCurrentSkin') }}
-          </el-button>
-        </div>
-      </el-form-item>
-
-      <el-form-item :label="i18nStore.t('skinPreview')">
-        <div class="skin-preview" :style="skinStyle">
-          <div class="preview-header">
-            <h2 class="preview-category-title">
-              <i class="el-icon-star"></i>
-              {{ i18nStore.t('categoryTitle') }}
-            </h2>
-          </div>
-          <div class="preview-links-grid">
-            <a href="#" class="preview-link-card">
-              <div class="preview-link-content">
-                <div class="preview-link-title">Google 搜索</div>
-                <div class="preview-link-desc">全球最大的搜索引擎</div>
-              </div>
-            </a>
-            <a href="#" class="preview-link-card">
-              <div class="preview-link-content">
-                <div class="preview-link-title">GitHub</div>
-                <div class="preview-link-desc">代码托管平台</div>
-              </div>
-            </a>
-            <a href="#" class="preview-link-card">
-              <div class="preview-link-content">
-                <div class="preview-link-title">Bilibili</div>
-                <div class="preview-link-desc">国内知名视频网站</div>
-              </div>
-            </a>
-            <a href="#" class="preview-link-card">
-              <div class="preview-link-content">
-                <div class="preview-link-title">知乎</div>
-                <div class="preview-link-desc">中文问答社区</div>
-              </div>
-            </a>
-          </div>
-        </div>
+      <el-form-item :label="i18nStore.t('linkSize')">
+        <el-radio-group v-model="settingsForm.linkSize">
+          <el-radio-button value="small">{{ i18nStore.t('linkSizeSmall') }}</el-radio-button>
+          <el-radio-button value="medium">{{ i18nStore.t('linkSizeMedium') }}</el-radio-button>
+          <el-radio-button value="large">{{ i18nStore.t('linkSizeLarge') }}</el-radio-button>
+        </el-radio-group>
       </el-form-item>
     </el-form>
 
-    <el-button type="primary" @click="saveSettings">保存</el-button>
-    <el-button @click="goHome">返回首页</el-button>
+    <!-- 皮肤选择 — 点击即生效 -->
+    <div class="skin-section">
+      <h2 class="skin-section-title">{{ i18nStore.t('skinLabel') }}</h2>
+      <div class="skin-grid">
+        <div
+          v-for="skin in allSkins"
+          :key="skin.id"
+          class="skin-card"
+          :class="{ active: skinStore.currentSkin === skin.id }"
+          @click="applySkin(skin.id)"
+        >
+          <div class="skin-card-preview" :style="getSkinPreviewStyle(skin)">
+            <div class="skin-card-preview-title" :style="{ color: skin.variables['--text-color'] }">Aa</div>
+            <div class="skin-card-preview-cards">
+              <span
+                class="skin-card-preview-dot"
+                :style="{ background: skin.variables['--primary-color'] }"
+              ></span>
+              <span
+                class="skin-card-preview-dot"
+                :style="{ background: skin.variables['--secondary-color'] || skin.variables['--primary-color'] }"
+              ></span>
+              <span
+                class="skin-card-preview-dot"
+                :style="{ background: skin.variables['--accent-color'] || skin.variables['--primary-color'] }"
+              ></span>
+            </div>
+          </div>
+          <div class="skin-card-name">
+            {{ i18nStore.locale === 'zh-CN' ? skin.name : skin.nameEn }}
+            <span v-if="!skin.isSystem" class="skin-card-tag">自定义</span>
+          </div>
+        </div>
+      </div>
+      <div class="skin-actions">
+        <el-button size="small" @click="showCustomSkinDialog = true">
+          {{ i18nStore.t('createCustomSkin') }}
+        </el-button>
+        <el-button
+          v-if="skinStore.currentSkin && !skinStore.isDefaultSkin(skinStore.currentSkin)"
+          size="small"
+          type="danger"
+          @click="handleDeleteCustomSkin"
+        >
+          {{ i18nStore.t('deleteCurrentSkin') }}
+        </el-button>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <el-button type="primary" @click="saveSettings">保存</el-button>
+      <el-button @click="goHome">返回首页</el-button>
+    </div>
 
     <!-- 页脚 -->
     <footer class="footer">
@@ -218,7 +206,6 @@ const settingsForm = ref({
   defaultSearchEngine: 'google'
 })
 
-const selectedSkin = ref('default')
 const showCustomSkinDialog = ref(false)
 const customSkinForm = ref({
   name: '',
@@ -230,20 +217,24 @@ const customSkinForm = ref({
   }
 })
 
-const skinStyle = computed(() => {
-  const skin = skinStore.allSkins.find(s => s.id === selectedSkin.value)
-  if (!skin || !skin.variables) return {}
+const allSkins = computed(() => skinStore.allSkins)
+
+function getSkinPreviewStyle(skin) {
+  const v = skin.variables
   return {
-    ...skin.variables,
-    padding: '1rem',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--border-color)'
+    background: v['--bg-color-secondary'] || v['--bg-color'],
+    borderRadius: v['--radius'] || '8px',
+    borderColor: v['--border-color-light'] || v['--border-color']
   }
-})
+}
+
+// 点击即生效
+function applySkin(skinId) {
+  skinStore.applySkin(skinId)
+}
 
 async function saveSettings() {
   await settingsStore.updateSettings(settingsForm.value)
-  skinStore.applySkin(selectedSkin.value)
   ElMessage.success(i18nStore.t('operationSuccess'))
 }
 
@@ -292,14 +283,12 @@ async function handleCreateCustomSkin() {
 
 // 删除当前选中的自定义皮肤
 async function handleDeleteCustomSkin() {
-  if (!selectedSkin.value || skinStore.isDefaultSkin(selectedSkin.value)) {
+  if (!skinStore.currentSkin || skinStore.isDefaultSkin(skinStore.currentSkin)) {
     return
   }
 
   try {
-    await skinStore.deleteCustomSkin(selectedSkin.value)
-    // 切换到默认皮肤
-    selectedSkin.value = 'default'
+    await skinStore.deleteCustomSkin(skinStore.currentSkin)
     skinStore.applySkin('default')
     ElMessage.success(i18nStore.t('deleteSuccess'))
   } catch (error) {
@@ -335,8 +324,6 @@ onMounted(async () => {
 
   // 加载自定义皮肤列表（设置页面需要显示）
   await skinStore.fetchCustomSkins()
-
-  selectedSkin.value = skinStore.currentSkin || 'default'
 
   // 将加载的设置数据赋值给表单
   settingsForm.value = { ...settingsStore.settings }
@@ -417,12 +404,8 @@ function goHome() {
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .nav-link {
@@ -461,73 +444,97 @@ function goHome() {
   margin: 0;
 }
 
-.skin-preview {
-  width: 100%;
-  min-height: 280px;
-  background: var(--bg-color-secondary, var(--bg-color));
-  border-radius: var(--radius);
-  padding: var(--link-card-padding, 1.5rem);
-  backdrop-filter: var(--backdrop-filter, none);
+/* 皮肤选择区 */
+.skin-section {
+  margin: 2rem 0;
 }
 
-.preview-header {
-  margin-bottom: var(--category-margin-bottom, 1.5rem);
-}
-
-.preview-category-title {
-  font-size: var(--category-font-size, 1.5rem);
-  font-weight: 700;
+.skin-section-title {
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-color);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transform: var(--category-title-scale, scale(1));
+  margin-bottom: 1rem;
 }
 
-.preview-links-grid {
+.skin-grid {
   display: grid;
-  grid-template-columns: var(--link-grid-columns, repeat(2, 1fr));
-  gap: var(--link-grid-gap, 1rem);
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
 }
 
-.preview-link-card {
-  display: block;
-  padding: var(--link-card-padding, 1.25rem);
-  max-width: var(--link-card-max-width, none);
-  background: var(--link-card-bg, var(--bg-color));
-  border: 1px solid var(--border-color-light);
-  border-radius: var(--radius);
-  text-decoration: none;
-  transition: all 0.3s ease;
+.skin-card {
   cursor: pointer;
-  backdrop-filter: var(--backdrop-filter, none);
-  transform: var(--link-card-transform, translateY(0));
+  transition: all 0.2s;
+  text-align: center;
 }
 
-.preview-link-card:hover {
-  transform: var(--link-card-hover-transform, translateY(-4px) scale(1.02));
-  box-shadow: var(--shadow-hover);
+.skin-card:hover {
+  transform: translateY(-2px);
+}
+
+.skin-card-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--border-color-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.skin-card.active .skin-card-preview {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.skin-card:hover .skin-card-preview {
   border-color: var(--primary-color);
 }
 
-.preview-link-content {
+.skin-card-preview-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.skin-card-preview-cards {
   display: flex;
-  flex-direction: column;
-  gap: var(--link-content-gap, 0.5rem);
+  gap: 0.375rem;
 }
 
-.preview-link-title {
-  color: var(--text-color);
-  font-weight: 600;
-  font-size: var(--link-font-size, 1.125rem);
-  margin-bottom: 0;
+.skin-card-preview-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
 }
 
-.preview-link-desc {
+.skin-card-name {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
   color: var(--text-color-secondary);
-  font-size: var(--link-description-font-size, 0.875rem);
-  line-height: var(--link-description-line-height, 1.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skin-card-tag {
+  font-size: 0.625rem;
+  padding: 0 0.25rem;
+  border-radius: 2px;
+  background: var(--primary-color);
+  color: #fff;
+  vertical-align: middle;
+}
+
+.skin-actions {
+  margin-top: 1rem;
+}
+
+.form-actions {
+  margin-top: 2rem;
 }
 
 .footer {

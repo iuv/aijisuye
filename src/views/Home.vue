@@ -66,7 +66,7 @@
       加载中...
     </div>
 
-    <div v-else class="nav-container">
+    <div v-else class="nav-container" :style="linkSizeStyle">
       <div v-for="category in linksStore.categories" :key="category.id" class="category">
         <h2 class="category-title">
           <i :class="category.icon"></i>
@@ -116,6 +116,32 @@ const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 const i18nStore = useI18nStore()
 const syncStore = useSyncStore()
+
+// 链接显示大小
+const linkSizeStyle = computed(() => {
+  const size = settingsStore.settings.linkSize || 'medium'
+  if (size === 'small') {
+    return {
+      '--link-card-padding': '0.625rem 0.75rem',
+      '--link-font-size': '0.875rem',
+      '--link-description-font-size': '0.75rem',
+      '--link-content-gap': '0.25rem',
+      '--category-font-size': '1.125rem',
+      '--category-margin-bottom': '0.75rem'
+    }
+  }
+  if (size === 'large') {
+    return {
+      '--link-card-padding': '2rem',
+      '--link-font-size': '1.5rem',
+      '--link-description-font-size': '1.0625rem',
+      '--link-content-gap': '0.75rem',
+      '--category-font-size': '2rem',
+      '--category-margin-bottom': '2rem'
+    }
+  }
+  return {}
+})
 
 // 搜索相关
 const searchQuery = ref('')

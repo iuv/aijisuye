@@ -110,7 +110,11 @@ export const useI18nStore = defineStore('i18n', {
           createSuccess: '创建成功',
           createFailed: '创建失败',
           deleteSuccess: '删除成功',
-          deleteFailed: '删除失败'
+          deleteFailed: '删除失败',
+          linkSize: '链接显示大小',
+          linkSizeSmall: '小',
+          linkSizeMedium: '中',
+          linkSizeLarge: '大'
         },
         'en-US': {
           siteName: 'AI Speedy Nav',
@@ -214,7 +218,11 @@ export const useI18nStore = defineStore('i18n', {
           createSuccess: 'Created successfully',
           createFailed: 'Failed to create',
           deleteSuccess: 'Deleted successfully',
-          deleteFailed: 'Failed to delete'
+          deleteFailed: 'Failed to delete',
+          linkSize: 'Link Size',
+          linkSizeSmall: 'Small',
+          linkSizeMedium: 'Medium',
+          linkSizeLarge: 'Large'
         }
       }
       return (key, params = {}) => {

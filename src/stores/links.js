@@ -2,14 +2,7 @@ import { defineStore } from 'pinia'
 import { createUserDataStore } from '@/utils/dataStore'
 import { useAuthStore } from './auth'
 import { useSyncStore } from './sync'
-
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+import { generateUUID } from '@/utils/helpers'
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
@@ -35,14 +28,12 @@ export const useLinksStore = defineStore('links', {
         const cachedLinks = localStorage.getItem('cached_links')
         const cachedCategories = localStorage.getItem('cached_categories')
         if ((cachedLinks || cachedCategories) && this.loaded) {
-          console.log('[Links] Using cached data')
           this.links = cachedLinks ? JSON.parse(cachedLinks) : []
           this.categories = cachedCategories ? JSON.parse(cachedCategories) : []
           return
         }
 
         // 从远程加载
-        console.log('[Links] Fetching from remote')
         const dataStore = createUserDataStore(authStore.accessToken, authStore.user?.login)
         const linksData = await dataStore.getLinks()
         const categoriesData = await dataStore.getCategories()
@@ -60,7 +51,6 @@ export const useLinksStore = defineStore('links', {
         const cachedLinks = localStorage.getItem('cached_links')
         const cachedCategories = localStorage.getItem('cached_categories')
         if (cachedLinks || cachedCategories) {
-          console.log('[Links] Using cached data after fetch error')
           this.links = cachedLinks ? JSON.parse(cachedLinks) : []
           this.categories = cachedCategories ? JSON.parse(cachedCategories) : []
         }
@@ -70,8 +60,6 @@ export const useLinksStore = defineStore('links', {
     },
 
     async addLink(link) {
-      const authStore = useAuthStore()
-
       const newLink = {
         ...link,
         id: generateUUID(),
@@ -87,8 +75,6 @@ export const useLinksStore = defineStore('links', {
       // 标记为有未同步的更改
       const syncStore = useSyncStore()
       syncStore.markAsModified()
-
-      console.log('[Links] Added link locally, marked as modified')
     },
 
     async updateLink(linkId, updatedData) {
@@ -106,8 +92,6 @@ export const useLinksStore = defineStore('links', {
         // 标记为有未同步的更改
         const syncStore = useSyncStore()
         syncStore.markAsModified()
-
-        console.log('[Links] Updated link locally, marked as modified')
       }
     },
 
@@ -120,13 +104,9 @@ export const useLinksStore = defineStore('links', {
       // 标记为有未同步的更改
       const syncStore = useSyncStore()
       syncStore.markAsModified()
-
-      console.log('[Links] Deleted link locally, marked as modified')
     },
 
     async addCategory(category) {
-      const authStore = useAuthStore()
-
       const newCategory = {
         ...category,
         id: generateUUID(),
@@ -142,8 +122,6 @@ export const useLinksStore = defineStore('links', {
       // 标记为有未同步的更改
       const syncStore = useSyncStore()
       syncStore.markAsModified()
-
-      console.log('[Links] Added category locally, marked as modified')
     },
 
     async updateCategory(categoryId, updatedData) {
@@ -161,8 +139,6 @@ export const useLinksStore = defineStore('links', {
         // 标记为有未同步的更改
         const syncStore = useSyncStore()
         syncStore.markAsModified()
-
-        console.log('[Links] Updated category locally, marked as modified')
       }
     },
 
@@ -177,8 +153,6 @@ export const useLinksStore = defineStore('links', {
       // 标记为有未同步的更改
       const syncStore = useSyncStore()
       syncStore.markAsModified()
-
-      console.log('[Links] Deleted category locally, marked as modified')
     },
 
     // 同步到远程
@@ -190,7 +164,6 @@ export const useLinksStore = defineStore('links', {
         throw new Error('Not authenticated')
       }
 
-      console.log('[Links] Syncing to remote')
       const dataStore = createUserDataStore(authStore.accessToken, authStore.user?.login)
 
       // 同步链接
@@ -200,8 +173,6 @@ export const useLinksStore = defineStore('links', {
       // 同步分类
       await dataStore.saveCategories(this.categories, 'Sync categories')
       localStorage.setItem('cached_categories', JSON.stringify(this.categories))
-
-      console.log('[Links] Synced to remote successfully')
     }
   }
 })
