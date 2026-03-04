@@ -20,6 +20,27 @@
           {{ syncStore.syncStatusText }}
         </button>
 
+        <!-- 皮肤切换下拉 -->
+        <div class="skin-dropdown" ref="skinDropdownRef">
+          <button class="skin-trigger" @click="toggleSkinDropdown">
+            <span class="skin-dot" :style="{ background: currentSkinPrimaryColor }"></span>
+            <span class="skin-name">{{ currentSkinName }}</span>
+            <span class="skin-arrow" :class="{ open: skinDropdownOpen }">▾</span>
+          </button>
+          <div v-if="skinDropdownOpen" class="skin-dropdown-menu">
+            <button
+              v-for="skin in skinStore.allSkins"
+              :key="skin.id"
+              class="skin-option"
+              :class="{ active: skinStore.currentSkin === skin.id }"
+              @click="selectSkin(skin.id)"
+            >
+              <span class="skin-dot" :style="{ background: skin.variables['--primary-color'] }"></span>
+              <span>{{ skin.name }}</span>
+            </button>
+          </div>
+        </div>
+
         <div v-if="!isDevMode" class="nav-buttons">
           <template v-if="authStore.isAuthenticated">
             <router-link to="/admin" class="nav-link">{{ i18nStore.t('admin') }}</router-link>
@@ -110,12 +131,36 @@ import { useSettingsStore } from '@/stores/settings'
 import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
 import { useSyncStore } from '@/stores/sync'
+import { useSkinStore } from '@/stores/skin'
 
 const linksStore = useLinksStore()
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 const i18nStore = useI18nStore()
 const syncStore = useSyncStore()
+const skinStore = useSkinStore()
+
+// 皮肤下拉菜单
+const skinDropdownOpen = ref(false)
+const skinDropdownRef = ref(null)
+
+const currentSkinName = computed(() => skinStore.currentSkinData?.name || '经典')
+const currentSkinPrimaryColor = computed(() => skinStore.currentSkinData?.variables?.['--primary-color'] || '#409eff')
+
+function toggleSkinDropdown() {
+  skinDropdownOpen.value = !skinDropdownOpen.value
+}
+
+function selectSkin(skinId) {
+  skinStore.applySkin(skinId)
+  skinDropdownOpen.value = false
+}
+
+function handleClickOutside(event) {
+  if (skinDropdownRef.value && !skinDropdownRef.value.contains(event.target)) {
+    skinDropdownOpen.value = false
+  }
+}
 
 // 链接显示大小
 const linkSizeStyle = computed(() => {
@@ -258,6 +303,7 @@ onMounted(async () => {
 
     // 添加页面关闭事件监听
     window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('click', handleClickOutside)
   } catch (error) {
     console.error('[Home] Failed to load data:', error)
   }
@@ -266,6 +312,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   // 移除页面关闭事件监听
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -599,5 +646,92 @@ onBeforeUnmount(() => {
 
 .footer-copyright {
   font-weight: 500;
+}
+
+/* 皮肤下拉菜单 */
+.skin-dropdown {
+  position: relative;
+}
+
+.skin-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-color-secondary, #f5f7fa);
+  color: var(--text-color);
+  border: 1px solid var(--border-color-light);
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.skin-trigger:hover {
+  border-color: var(--primary-color);
+}
+
+.skin-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skin-name {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skin-arrow {
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+
+.skin-arrow.open {
+  transform: rotate(180deg);
+}
+
+.skin-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--bg-color, #fff);
+  border: 1px solid var(--border-color-light);
+  border-radius: 8px;
+  box-shadow: var(--shadow, 0 2px 12px rgba(0,0,0,0.1));
+  z-index: 1000;
+  padding: 4px 0;
+}
+
+.skin-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.skin-option:hover {
+  background: var(--bg-color-secondary, #f5f7fa);
+}
+
+.skin-option.active {
+  color: var(--primary-color);
+  font-weight: 600;
 }
 </style>

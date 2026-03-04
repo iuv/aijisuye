@@ -3,6 +3,7 @@ import { createUserDataStore } from '@/utils/dataStore'
 import { useAuthStore } from './auth'
 import { useSyncStore } from './sync'
 import { generateUUID } from '@/utils/helpers'
+import { defaultCategories, defaultLinks } from '@/utils/defaultLinks'
 
 export const useLinksStore = defineStore('links', {
   state: () => ({
@@ -53,6 +54,9 @@ export const useLinksStore = defineStore('links', {
         if (cachedLinks || cachedCategories) {
           this.links = cachedLinks ? JSON.parse(cachedLinks) : []
           this.categories = cachedCategories ? JSON.parse(cachedCategories) : []
+        } else {
+          this.links = defaultLinks
+          this.categories = defaultCategories
         }
       } finally {
         this.loading = false
